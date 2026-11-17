@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Overhead: what's above you right now</title>
+  <meta name="description" content="Every satellite, the ISS, the planets, Sun and Moon above your location, live in the browser. No install, no tracking.">
+  <meta name="theme-color" content="#0E1217" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#F4F1EA" media="(prefers-color-scheme: light)">
+  <meta name="color-scheme" content="dark light">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230E1217'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23ECE7DC' stroke-width='1.5'/%3E%3Cpath d='M16 5v22M5 16h22' stroke='%23ECE7DC' stroke-width='.75' opacity='.5'/%3E%3Ccircle cx='20' cy='12' r='2.6' fill='%23FF6B3D'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles/main.css">
+  <script>
+    // Apply a saved or ?theme= override before first paint to avoid a flash.
+    (function () {
+      try {
+        var q = new URLSearchParams(location.search).get('theme');
+        var t = q || localStorage.getItem('overhead:theme');
+        if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t;
+      } catch (e) { /* storage blocked: follow the OS */ }
+    })();
+  </script>
+  <script type="module" src="src/main.js"></script>
+</head>
+<body>
+  <div class="sheet">
+    <header class="masthead">
+      <a class="brand" href="./" aria-label="Overhead, reload">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="16" cy="16" r="6.5" fill="none" stroke="currentColor" stroke-width=".75" opacity=".5"/>
+          <path d="M16 3v26M3 16h26" stroke="currentColor" stroke-width=".75" opacity=".5"/>
+          <circle cx="21" cy="11" r="2.8" fill="var(--accent)"/>
+        </svg>
+        <span class="brand-name">Overhead</span>
+        <span class="brand-tag label">what's above you, right now</span>
+      </a>
+      <span class="spacer"></span>
+      <div class="seg" role="group" aria-label="View">
+        <button type="button" id="view-dome" aria-pressed="true">Dome</button>
+        <button type="button" id="view-point" aria-pressed="false">Point</button>
+      </div>
+      <button type="button" class="icon-btn" id="theme-toggle" aria-label="Color theme: follow system">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor"/><path d="M8 1.5a6.5 6.5 0 0 1 0 13z" fill="currentColor"/></svg>
+      </button>
+    </header>
+
+    <main class="workspace">
+      <section class="figure" aria-labelledby="fig-title">
+        <div class="fig-head">
+          <span class="label"><span class="accent">Fig. 01</span> &nbsp;<span id="fig-title" class="fig-title">Sky dome</span></span>
+          <span class="label" id="fig-place">Addis Ababa</span>
+        </div>
+        <div class="dome-wrap" id="dome-wrap">
+          <canvas id="dome" tabindex="0" role="img"
+            aria-label="Sky chart. Use arrow keys to step through objects above the horizon, Enter for details, Escape to clear."></canvas>
+        </div>
+        <div class="fig-foot">
+          <span class="label">Azimuthal equidistant · N up · E left</span>
+          <span class="label" id="fig-count">—</span>
+        </div>
+        <p class="sr-only" id="live" aria-live="polite"></p>
+      </section>
+
+      <aside class="panel" aria-label="Instrument panel">
+        <section class="block" aria-labelledby="h-selected" id="selected-block">
+          <h2 class="block-head" id="h-selected"><span class="idx">01</span><span class="label">Selected</span><span class="aside label" id="selected-kind"></span></h2>
+          <div id="selected">
+            <p class="empty">Tap an object on the chart, or pick one from the list below.</p>
+          </div>
+        </section>
+
+        <section class="block" aria-labelledby="h-time">
+          <h2 class="block-head" id="h-time"><span class="idx">02</span><span class="label">Time &amp; sky</span><span class="aside label" id="tz"></span></h2>
+          <div class="big-readout"><span class="clock" id="clock">--:--:--</span><span class="label" id="clock-offset">Live</span></div>
+          <dl class="readout" style="margin-top:10px">
+            <dt>Date</dt><dd id="date">—</dd>
+            <dt>Sun</dt><dd id="sun-state">—</dd>
+            <dt>Moon</dt><dd id="moon-state">—</dd>
+          </dl>
+        </section>
+
+        <section class="block" aria-labelledby="h-layers">
+          <h2 class="block-head" id="h-layers"><span class="idx">03</span><span class="label">Layers</span><span class="aside label">above horizon</span></h2>
+          <ul class="layers" id="layers"></ul>
+        </section>
+
+        <section class="block" aria-labelledby="h-up">
+          <h2 class="block-head" id="h-up"><span class="idx">04</span><span class="label">Up now</span><span class="aside label">by elevation</span></h2>
+          <ul class="objects" id="objects" aria-label="Objects above the horizon"></ul>
+        </section>
+
+        <section class="block" aria-labelledby="h-where">
+          <h2 class="block-head" id="h-where"><span class="idx">05</span><span class="label">Observer</span></h2>
+          <dl class="readout">
+            <dt>Place</dt><dd id="place">Addis Ababa</dd>
+            <dt>Lat / Lon</dt><dd id="coords">—</dd>
+          </dl>
+          <div class="row" style="margin-top:12px">
+            <button type="button" class="btn" id="locate">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="4.5" fill="none" stroke="currentColor"/><path d="M8 0v4M8 12v4M0 8h4M12 8h4" stroke="currentColor"/></svg>
+              Use my location
+            </button>
+            <label class="sr-only" for="city">City</label>
+            <select id="city"></select>
+          </div>
+          <details style="margin-top:10px">
+            <summary class="label" style="cursor:pointer;padding:6px 0">Enter coordinates</summary>
+            <form class="row" id="manual" style="margin-top:8px">
+              <label class="field"><span class="label">Lat °</span><input type="number" id="lat" step="0.0001" min="-90" max="90" required inputmode="decimal"></label>
+              <label class="field"><span class="label">Lon °</span><input type="number" id="lon" step="0.0001" min="-180" max="180" required inputmode="decimal"></label>
+              <button class="btn" type="submit" style="align-self:end">Set</button>
+            </form>
+          </details>
+        </section>
+      </aside>
+    </main>
+
+    <section class="timebar" aria-label="Time">
+      <div class="scale">
+        <label for="scrub" class="sr-only">Time offset from now, minutes</label>
+        <input type="range" class="ruler" id="scrub" min="-720" max="720" step="1" value="0">
+        <div class="ticks" aria-hidden="true">
+          <span>−12h</span><span>−6h</span><span class="now">now</span><span>+6h</span><span>+12h</span>
+        </div>
+      </div>
+      <div class="controls">
+        <button type="button" class="btn primary" id="now-btn">Now</button>
+      </div>
+    </section>
+
+    <footer class="titleblock">
+      <div><span class="label">Elements</span><span class="val" id="tb-data">loading…</span></div>
+      <div><span class="label">Propagator</span><span class="val">SGP4 · satellite.js 7.1.0</span></div>
+      <div><span class="label">Ephemeris</span><span class="val">astronomy-engine 2.1.19</span></div>
+      <div><span class="label">Tracking</span><span class="val">none · no analytics</span></div>
+      <div><span class="label">Source</span><span class="val"><a href="https://github.com/tofiqueadam/overhead">github.com/tofiqueadam/overhead</a></span></div>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>
