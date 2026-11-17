@@ -97,3 +97,11 @@ test('merge collapses duplicate ids and identical element sets', () => {
   assert.equal(merged[0].name, 'ISS (ZARYA)');
   assert.deepEqual([...merged[0].groups].sort(), ['stations', 'visual']);
 });
+
+test('snapshotOnly never calls CelesTrak', async () => {
+  const snap = { fetchedAt: '2026-11-17T08:00:00Z', data: compact([ISS]) };
+  const fetchFn = fakeFetch({ 'celestrak.org': [200, [ISS]], 'snapshot/stations.json': [200, snap] });
+  const r = await loadGroup('stations', { fetchFn, storage: new MemStorage(), now: 0, snapshotOnly: true });
+  assert.equal(r.source, 'snapshot');
+  assert.ok(fetchFn.calls.every((u) => !u.includes('celestrak.org')));
+});

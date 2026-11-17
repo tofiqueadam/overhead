@@ -72,7 +72,9 @@ export async function loadGroup(group, {
   now = Date.now(),
   snapshotBase = 'data/snapshot/',
   force = false,
+  snapshotOnly = false, // development / screenshots: never touch CelesTrak
 } = {}) {
+  if (snapshotOnly) return loadSnapshot(group, fetchFn, snapshotBase);
   const cached = readCache(storage, group);
   if (!force && isFresh(cached, now)) {
     return { records: expand(cached.data), source: 'cache', fetchedAt: cached.fetchedAt };
@@ -98,8 +100,12 @@ export async function loadGroup(group, {
     return { records: expand(cached.data), source: 'cache-stale', fetchedAt: cached.fetchedAt, error };
   }
 
+  return loadSnapshot(group, fetchFn, snapshotBase, error);
+}
+
+async function loadSnapshot(group, fetchFn, snapshotBase, error) {
   const res = await fetchFn(`${snapshotBase}${group}.json`);
-  if (!res.ok) throw new Error(`No data for ${group}: ${error?.message}; snapshot HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`No data for ${group}: ${error?.message ?? ''} snapshot HTTP ${res.status}`);
   const snap = await res.json();
   return { records: expand(snap.data), source: 'snapshot', fetchedAt: Date.parse(snap.fetchedAt), error };
 }
