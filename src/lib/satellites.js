@@ -82,6 +82,22 @@ export function observe(satrec, date, observer, prepared = prepareObserver(obser
   };
 }
 
+/**
+ * Lean variant for bulk work (thousands of objects per frame): unit ENU
+ * direction and range only, with the sidereal angle passed in.
+ * Returns { e, n, u, range, eci } or null.
+ */
+export function topocentric(satrec, date, prepared, gmst) {
+  const pv = propagateTeme(satrec, date);
+  if (!pv) return null;
+  const r = eciToEcef(pv.position, gmst);
+  const v = prepared.toEnu({ x: r.x - prepared.ecef.x, y: r.y - prepared.ecef.y, z: r.z - prepared.ecef.z });
+  const range = Math.hypot(v.e, v.n, v.u);
+  return { e: v.e / range, n: v.n / range, u: v.u / range, range, eci: pv.position };
+}
+
+export { gstime };
+
 /** Precompute the observer's ECEF position and ENU rotation (hot-loop helper). */
 export function prepareObserver(observer) {
   return {
