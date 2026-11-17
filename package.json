@@ -1,0 +1,17 @@
+{
+  "name": "overhead",
+  "version": "0.1.0",
+  "private": true,
+  "description": "What's above you right now: satellites, planets, Sun and Moon over your location, live in the browser.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Tofique Adam",
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "test": "node --test test/",
+    "snapshot": "node scripts/snapshot.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
