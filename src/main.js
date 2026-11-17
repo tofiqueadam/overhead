@@ -11,7 +11,7 @@ import {
 import { enuToAzEl } from './lib/geo.js';
 import { CITIES, DEFAULT_CITY } from './lib/cities.js';
 import * as F from './lib/format.js';
-import { satelliteCard, bodyCard, starCard, renderObjectList } from './ui/panel.js';
+import { satelliteCard, bodyCard, starCard, renderObjectList, esc } from './ui/panel.js';
 
 const MASK = { stations: 1, visual: 2, starlink: 4 };
 const ISS_ID = 25544;
@@ -508,7 +508,7 @@ function renderObserver() {
   const o = state.observer;
   $('place').textContent = o.name;
   $('coords').textContent = F.latLon(o.lat, o.lon, 2);
-  $('fig-place').textContent = `${o.name} · ${F.latLon(o.lat, o.lon, 2)}`;
+  $('fig-place').innerHTML = `${esc(o.name)}<span class="coords-part"> · ${F.latLon(o.lat, o.lon, 2)}</span>`;
   $('city').value = CITIES.some((c) => c.id === o.id) ? o.id : 'custom';
   $('lat').value = o.lat;
   $('lon').value = o.lon;

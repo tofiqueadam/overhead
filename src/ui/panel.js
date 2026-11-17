@@ -2,6 +2,7 @@
 // "up now" list and the clock block. Plain DOM, keyed updates.
 
 import * as F from '../lib/format.js';
+import { compassPoint } from '../lib/angles.js';
 
 export const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
@@ -112,7 +113,7 @@ export function renderObjectList(ul, items, selectedKey) {
   ul.innerHTML = items.map((it) => `
     <li><button type="button" data-key="${esc(it.key)}" aria-current="${it.key === selectedKey}">
       <span class="o-name">${esc(it.name)}</span>
-      <span class="o-val">${F.azimuth(it.az).slice(-3).trim()}</span>
+      <span class="o-val">${compassPoint(it.az)}</span>
       <span class="o-val o-el">${F.deg(it.el, 0)}</span>
     </button></li>`).join('');
   ul.dataset.keys = items.map((i) => i.key).join();

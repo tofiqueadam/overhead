@@ -56,10 +56,23 @@
             aria-label="Sky chart. Use arrow keys to step through objects above the horizon, Enter for details, Escape to clear."></canvas>
         </div>
         <div class="fig-foot">
-          <span class="label">Azimuthal equidistant · N up · E left</span>
+          <span class="label"><span class="coords-part">Azimuthal equidistant · </span>N up · E left</span>
           <span class="label" id="fig-count">—</span>
         </div>
         <p class="sr-only" id="live" aria-live="polite"></p>
+        <div class="timebar" role="group" aria-label="Time scrubber">
+          <div class="scale">
+            <label for="scrub" class="sr-only">Time offset from now, minutes</label>
+            <input type="range" class="ruler" id="scrub" min="-720" max="720" step="1" value="0">
+            <div class="ticks" aria-hidden="true">
+              <span>−12h</span><span>−6h</span><span class="now">now</span><span>+6h</span><span>+12h</span>
+            </div>
+          </div>
+          <div class="controls">
+            <button type="button" class="btn primary" id="now-btn">Now</button>
+          </div>
+        </div>
+
       </section>
 
       <aside class="panel" aria-label="Instrument panel">
@@ -116,18 +129,6 @@
       </aside>
     </main>
 
-    <section class="timebar" aria-label="Time">
-      <div class="scale">
-        <label for="scrub" class="sr-only">Time offset from now, minutes</label>
-        <input type="range" class="ruler" id="scrub" min="-720" max="720" step="1" value="0">
-        <div class="ticks" aria-hidden="true">
-          <span>−12h</span><span>−6h</span><span class="now">now</span><span>+6h</span><span>+12h</span>
-        </div>
-      </div>
-      <div class="controls">
-        <button type="button" class="btn primary" id="now-btn">Now</button>
-      </div>
-    </section>
 
     <footer class="titleblock">
       <div><span class="label">Elements</span><span class="val" id="tb-data">loading…</span></div>

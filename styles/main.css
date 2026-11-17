@@ -72,7 +72,7 @@ a:hover { text-decoration-color: var(--accent); }
 .sheet {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   min-height: 100dvh;
   border: var(--hair) solid var(--faint);
   margin: 0;
@@ -163,6 +163,7 @@ a:hover { text-decoration-color: var(--accent); }
 
 /* ---- instrument panel -------------------------------------------------- */
 .panel {
+  position: relative; /* contain .sr-only children so they cannot extend the page */
   border-top: var(--hair) solid var(--faint);
   background: var(--panel);
   min-width: 0;
@@ -267,7 +268,8 @@ select { flex: 1; }
 /* ---- time scrubber: a ruler -------------------------------------------- */
 .timebar {
   border-top: var(--hair) solid var(--faint);
-  padding: 10px var(--gutter) 12px;
+  margin-top: 8px;
+  padding: 10px 0 2px;
   display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 14px; align-items: center;
 }
 .timebar .scale { grid-column: 1; position: relative; }
@@ -349,7 +351,7 @@ input[type="range"].ruler::-moz-range-thumb {
   .workspace { grid-template-columns: minmax(0, 1fr) 360px; overflow: hidden; }
   .panel { border-top: 0; border-left: var(--hair) solid var(--faint); overflow-y: auto; min-height: 0; }
   .figure { padding: 16px 28px 10px; min-height: 0; }
-  .dome-wrap { max-height: none; height: 100%; width: auto; aspect-ratio: 1 / 1; max-width: 100%; }
+  .dome-wrap { max-height: none; height: 100%; width: auto; aspect-ratio: 1 / 1; max-width: 100%; min-height: 0; }
   .titleblock { grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr; }
   .titleblock > div { border-bottom: 0; }
   .titleblock > div:nth-child(2n) { border-right: var(--hair) solid var(--faint); }
@@ -358,6 +360,7 @@ input[type="range"].ruler::-moz-range-thumb {
 
 @media (max-width: 520px) {
   .brand-tag { display: none; }
+  .fig-head .coords-part { display: none; }
   .big-readout .clock { font-size: 24px; }
 }
 

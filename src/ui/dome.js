@@ -52,6 +52,7 @@ export class Dome {
     ctx.restore();
     this.targets = [];
     this.labels = [];
+    this.reserved = []; // boxes of fixed chart text that labels must avoid
 
     this.drawSky(scene.sunEl);
     this.drawGrid();
@@ -137,6 +138,7 @@ export class Dome {
     for (const alt of [30, 60]) {
       const r = (R * (90 - alt)) / 90;
       ctx.fillText(`${alt}°`, cx + 4, cy - r - 7);
+      this.reserve(cx + 4, cy - r - 7, ctx.measureText(`${alt}°`).width, 10);
     }
     ctx.restore();
   }
@@ -175,10 +177,14 @@ export class Dome {
         ctx.fillStyle = az === 0 ? T.accent : T.ink;
         ctx.font = `600 ${small ? 11 : 12}px ${T.mono}`;
         ctx.fillText(CARDINALS[az], x, y);
+        this.reserve(x - 6, y, 12, 12);
       } else if (!small || az % 90 !== 0) {
         ctx.fillStyle = T.muted;
         ctx.font = `${small ? 8.5 : 9.5}px ${T.mono}`;
-        ctx.fillText(String(az).padStart(3, '0'), x, y);
+        const txt = String(az).padStart(3, '0');
+        ctx.fillText(txt, x, y);
+        const w = ctx.measureText(txt).width;
+        this.reserve(x - w / 2, y, w, 10);
       }
     }
     ctx.restore();
@@ -368,6 +374,11 @@ export class Dome {
     this.queueLabel(p.x, p.y, r + 8, sel.name, { color: T.accent, weight: 600, priority: 10, boxed: true });
   }
 
+  /** Mark a text box (left x, middle y) as occupied. */
+  reserve(x, yMid, w, h) {
+    this.reserved.push({ x: x - 1, y: yMid - h / 2 - 1, w: w + 2, h: h + 2 });
+  }
+
   // --- labels: greedy placement avoiding overlaps --------------------------
 
   queueLabel(x, y, offset, text, opts = {}) {
@@ -376,7 +387,7 @@ export class Dome {
 
   flushLabels() {
     const { ctx, theme: T } = this;
-    const placed = [];
+    const placed = [...this.reserved];
     const sorted = [...this.labels].sort((a, b) => b.priority - a.priority);
     for (const l of sorted) {
       const size = l.size ?? 10;
