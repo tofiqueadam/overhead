@@ -278,35 +278,64 @@ function updatePanel(t) {
   }
 }
 
+/**
+ * The selection card refreshes every 500 ms. Rewrite it only when the markup
+ * changes, so buttons inside it keep keyboard focus and clicks aren't lost.
+ */
+function setHtml(el, html) {
+  if (el.dataset.html === html) return;
+  el.innerHTML = html;
+  el.dataset.html = html;
+}
+
 function updateSelectedCard(t) {
   const sel = state.selected;
   const box = $('selected');
   const now = new Date(t);
   if (!sel) {
     $('selected-kind').textContent = '';
-    if (!box.querySelector('.empty')) box.innerHTML = '<p class="empty">Tap an object on the chart, or pick one from the list below.</p>';
+    setHtml(box, `<p class="empty">Tap an object on the chart, or pick one from the list.</p>${issTeaser(t)}`);
     return;
   }
   if (sel.type === 'sat') {
     const st = selectedSatState(t);
-    if (!st) { box.innerHTML = '<p class="empty">No valid elements for this object.</p>'; return; }
+    if (!st) { setHtml(box, '<p class="empty">No valid elements for this object.</p>'); return; }
     const passes = passesFor(st.entry, t);
     $('selected-kind').textContent = st.entry.kind === 'swarm' ? 'Starlink' : 'Satellite';
-    box.innerHTML = satelliteCard({
+    setHtml(box, satelliteCard({
       id: st.entry.id, name: st.entry.name, intlId: st.entry.intlId, groups: st.entry.groups,
       state: st.state, lit: st.lit, epoch: st.entry.epoch, passes,
-    }, now);
+    }, now));
   } else if (sel.type === 'body') {
     const b = state.bodies.find((x) => x.id === sel.id);
     if (!b) return;
     $('selected-kind').textContent = sel.id === 'sun' ? 'Sun' : sel.id === 'moon' ? 'Moon' : 'Planet';
-    box.innerHTML = bodyCard(b, { riseSet: riseSetFor(b, t), phaseName: moonPhaseName(state.moonPhase) }, now);
+    setHtml(box, bodyCard(b, { riseSet: riseSetFor(b, t), phaseName: moonPhaseName(state.moonPhase) }, now));
   } else {
     const s = state.stars.find((x) => x.name === sel.id);
     if (!s) return;
     $('selected-kind').textContent = 'Star';
-    box.innerHTML = starCard(s);
+    setHtml(box, starCard(s));
   }
+}
+
+/** "Next ISS pass" card shown while nothing is selected. */
+function issTeaser(t) {
+  const iss = state.catalog.get(ISS_ID);
+  if (!iss) return '';
+  const result = passesFor(iss, t);
+  if (!result) return '<div class="teaser"><span class="label">Next ISS pass</span><p class="meta">Computing…</p></div>';
+  const p = result.passes[0];
+  if (!p) return '<div class="teaser"><span class="label">Next ISS pass</span><p class="meta">None above the horizon in the next 24 h.</p></div>';
+  const d = p.start;
+  const when = p.inProgress ? 'Overhead now' : d.toLocaleTimeString('en-US', { weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false });
+  const vis = p.visible ? '<span class="accent">visible to the eye</span>' : 'not visible (daylight or Earth\u2019s shadow)';
+  return `<div class="teaser">
+    <span class="label">Next ISS pass · ${esc(state.observer.name)}</span>
+    <div class="when">${when} <small class="label">${p.inProgress ? '' : F.relative(d - t)}</small></div>
+    <p class="meta">max ${F.deg(p.maxEl, 0)} · ${vis}</p>
+    <button type="button" class="btn" data-select-iss>Select ISS</button>
+  </div>`;
 }
 
 /** Passes are expensive-ish: cache per object/observer and refresh lazily. */
@@ -437,6 +466,10 @@ canvas.addEventListener('keydown', (e) => {
   const it = items[next];
   select(refFromKey(it.key));
   $('live').textContent = `${it.name}, elevation ${Math.round(it.el)} degrees, azimuth ${Math.round(it.az)} degrees.`;
+});
+
+$('selected').addEventListener('click', (e) => {
+  if (e.target.closest('[data-select-iss]')) select({ type: 'sat', id: ISS_ID });
 });
 
 $('objects').addEventListener('click', (e) => {

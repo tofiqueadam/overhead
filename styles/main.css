@@ -161,6 +161,20 @@ a:hover { text-decoration-color: var(--accent); }
   pointer-events: none;
 }
 
+/* chart key */
+.legend {
+  list-style: none; margin: 8px 0 0; padding: 0;
+  display: flex; flex-wrap: wrap; gap: 4px 16px;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+}
+.legend li { display: inline-flex; align-items: center; gap: 6px; }
+.legend svg { width: 12px; height: 12px; }
+
+/* ISS teaser in the empty selection card */
+.teaser { border: var(--hair) solid var(--faint); padding: 12px; margin-top: 12px; background: var(--bg); }
+.teaser .when { font-family: var(--mono); font-size: 18px; }
+.teaser .meta { font-family: var(--mono); font-size: 11px; color: var(--muted); margin: 4px 0 10px; }
+
 /* ---- instrument panel -------------------------------------------------- */
 .panel {
   position: relative; /* contain .sr-only children so they cannot extend the page */
