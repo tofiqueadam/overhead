@@ -6,6 +6,8 @@
 ![License: MIT](https://img.shields.io/badge/license-MIT-black)
 ![No build step](https://img.shields.io/badge/build-none-black)
 
+**▶ [Open it live](https://tofiqueadam.github.io/overhead/)**: allow location access, or pick a city.
+
 ![Overhead on desktop: a sky dome chart over Addis Ababa with planets, stars and satellites](docs/screenshot-desktop.png)
 
 Open the page and you see the sky as a chart, drawn like an engineering drawing. Everything in it is computed on your device from orbital elements and planetary ephemerides. It has no backend, no accounts and no analytics.
